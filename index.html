@@ -18,73 +18,198 @@
 <div class="detail-block"><h4>역할</h4><p id="detailRole"></p></div><div class="detail-block"><h4>Situation (상황)</h4><p id="detailS"></p></div><div class="detail-block"><h4>Task (과제)</h4><p id="detailT"></p></div><div class="detail-block"><h4>Action (행동)</h4><p id="detailA"></p></div><div class="detail-block"><h4>Result (결과)</h4><p id="detailR"></p></div><div class="detail-block" id="detailOtherArea"><h4>기타 설명</h4><p id="detailOther"></p></div>
 <div class="actions"><button class="primary" onclick="editCurrent()">수정하기</button><button class="danger" onclick="deleteCurrent()">삭제하기</button><button class="secondary" onclick="showDashboard()">목록으로</button></div></div></section>
 </main><script>
-let experiences=[],currentId=null,editingId=null;
-const STORAGE_KEY='my-experiences-v1';
-function readExperiences(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]')}catch(e){return []}}
-function writeExperiences(items){localStorage.setItem(STORAGE_KEY,JSON.stringify(items))}
-async function api(action,data={}){
-  let items=readExperiences();
-  if(action==='dashboard'){
-    const total=items.length,completed=items.filter(x=>x.status==='완료').length;
-    return {total,completed,incomplete:total-completed,completionRate:total?Math.round(completed/total*100):0,categories:['동아리','프로젝트','대외활동','인턴','기타'].map(name=>({name,count:items.filter(x=>x.kind===name).length})),experiences:items};
+'use strict';
+let experiences = [];
+let currentId = null;
+let editingId = null;
+const STORAGE_KEY = 'my-experiences-v1';
+const $ = id => document.getElementById(id);
+
+function readExperiences() {
+  try {
+    const value = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+    return Array.isArray(value) ? value : [];
+  } catch (_) { return []; }
+}
+function writeExperiences(items) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+}
+async function api(action, payload = {}) {
+  const items = readExperiences();
+  if (action === 'dashboard') {
+    const totalCount = items.length;
+    const done = items.filter(x => x.status === '완료').length;
+    return {
+      total: totalCount,
+      completed: done,
+      incomplete: totalCount - done,
+      completionRate: totalCount ? Math.round(done / totalCount * 100) : 0,
+      categories: ['동아리','프로젝트','대외활동','인턴','기타'].map(name => ({
+        name, count: items.filter(x => x.kind === name).length
+      })),
+      experiences: items
+    };
   }
-  if(action==='save'){
-    const f=data.data||{};
-    if(!f.date||!f.name||!f.kind||!f.role)throw new Error('날짜, 경험 이름, 종류, 역할을 입력해 주세요.');
-    if(f.kind==='기타'&&!f.otherDescription)throw new Error('기타 경험에 대한 설명을 입력해 주세요.');
-    const id=f.id||((crypto.randomUUID&&crypto.randomUUID())||('exp-'+Date.now()+'-'+Math.random().toString(36).slice(2)));
-    const complete=[f.s,f.t,f.a,f.r].every(v=>String(v||'').trim()!=='');
-    const item={...f,id,status:complete?'완료':'미완성',preview:f.r?f.r.substring(0,100):'결과 내용 없음'};
-    const index=items.findIndex(x=>x.id===id);
-    if(index>=0)items[index]=item;else items.unshift(item);
-    writeExperiences(items);return {id,status:item.status};
+  if (action === 'save') {
+    const f = payload.data || {};
+    if (!f.date || !f.name || !f.kind || !f.role) {
+      throw new Error('날짜, 경험 이름, 종류, 역할을 입력해 주세요.');
+    }
+    if (f.kind === '기타' && !f.otherDescription) {
+      throw new Error('기타 경험에 대한 설명을 입력해 주세요.');
+    }
+    const id = f.id || (window.crypto && crypto.randomUUID
+      ? crypto.randomUUID()
+      : 'exp-' + Date.now() + '-' + Math.random().toString(36).slice(2));
+    const complete = [f.s, f.t, f.a, f.r].every(v => String(v || '').trim());
+    const item = { ...f, id, status: complete ? '완료' : '미완성',
+      preview: f.r ? f.r.substring(0, 100) : '결과 내용 없음' };
+    const index = items.findIndex(x => x.id === id);
+    if (index >= 0) items[index] = item;
+    else items.unshift(item);
+    writeExperiences(items);
+    return { id, status: item.status };
   }
-  if(action==='delete'){
-    const next=items.filter(x=>x.id!==data.id);
-    if(next.length===items.length)throw new Error('삭제할 경험을 찾을 수 없습니다.');
-    writeExperiences(next);return {ok:true};
+  if (action === 'delete') {
+    const next = items.filter(x => x.id !== payload.id);
+    if (next.length === items.length) throw new Error('삭제할 경험을 찾을 수 없습니다.');
+    writeExperiences(next);
+    return { ok: true };
   }
   throw new Error('지원하지 않는 요청입니다.');
 }
-function showPage(id){['dashboard','formPage','detailPage'].forEach(x=>document.getElementById(x).classList.add('hidden'));document.getElementById(id).classList.remove('hidden');window.scrollTo(0,0);}
-async function showDashboard(){showPage('dashboard');try{const d=await api('dashboard');experiences=d.experiences||[];total.textContent=d.total;completed.textContent=d.completed;incomplete.textContent=d.incomplete;rate.textContent=d.completionRate+'%';renderChart(d.categories||[]);renderList();}catch(e){alert('경험 목록을 불러오지 못했습니다.\n'+e.message);}}
-function renderChart(c){const m=Math.max(1,...c.map(x=>x.count));kindChart.innerHTML=c.map(x=>'<div class="bar-row"><div class="bar-label">'+esc(x.name)+'</div><div class="bar-bg"><div class="bar" style="width:'+(x.count/m*100)+'%"></div></div><div class="bar-count">'+x.count+'</div></div>').join('');}
-function renderList(){if(!experiences.length){experienceList.innerHTML='<p class="muted">아직 저장된 경험이 없습니다.</p>';return;}experienceList.innerHTML=experiences.map(x=>'<div class="experience" data-id="'+esc(x.id)+'"><div><strong>'+esc(x.name)+'</strong><span class="muted">'+esc(x.date)+' · '+esc(x.kind)+'</span></div><div style="text-align:right"><span class="tag">'+esc(x.kind)+'</span><div class="status">'+esc(x.status)+'</div></div></div>').join('');experienceList.querySelectorAll('.experience').forEach(el=>el.addEventListener('click',()=>showDetail(el.dataset.id)));}
-function showDetail(id){const x=experiences.find(v=>v.id===id);if(!x)return alert('경험을 찾을 수 없습니다.');currentId=id;const m={detailName:x.name,detailMeta:x.date+' · '+(x.role||'역할 미입력'),detailKind:x.kind,detailStatus:x.status,detailRole:x.role||'입력된 내용이 없습니다.',detailS:x.s||'입력된 내용이 없습니다.',detailT:x.t||'입력된 내용이 없습니다.',detailA:x.a||'입력된 내용이 없습니다.',detailR:x.r||'입력된 내용이 없습니다.',detailOther:x.otherDescription||'입력된 내용이 없습니다.'};Object.keys(m).forEach(k=>document.getElementById(k).textContent=m[k]);detailOtherArea.style.display=x.otherDescription?'block':'none';showPage('detailPage');}
-function showForm(){editingId=null;experienceForm.reset();formTitle.textContent='새 경험 작성';saveButton.textContent='저장하기';otherArea.classList.add('hidden');showPage('formPage');}
-function editCurrent(){const x=experiences.find(v=>v.id===currentId);if(!x)return alert('수정할 경험을 찾을 수 없습니다.');editingId=x.id;['date','name','kind','role','s','t','a','r','otherDescription'].forEach(k=>document.getElementById(k).value=x[k]||'');otherArea.classList.toggle('hidden',x.kind!=='기타');formTitle.textContent='경험 수정';saveButton.textContent='수정 내용 저장';showPage('formPage');}
-async function deleteCurrent(){if(!currentId||!confirm('정말 이 경험을 삭제하시겠습니까? 삭제한 내용은 복구할 수 없습니다.'))return;try{await api('delete',{id:currentId});currentId=null;alert('경험이 삭제되었습니다.');await showDashboard();}catch(e){alert('삭제에 실패했습니다.\n'+e.message);}}
-kind.addEventListener('change',()=>otherArea.classList.toggle('hidden',kind.value!=='기타'));
-experienceForm.addEventListener('submit',async e=>{
-  e.preventDefault();
-  const getValue=id=>document.getElementById(id).value;
-  const data={
-    id:editingId,
-    date:getValue('date'),
-    name:getValue('name').trim(),
-    kind:getValue('kind'),
-    role:getValue('role').trim(),
-    s:getValue('s').trim(),
-    t:getValue('t').trim(),
-    a:getValue('a').trim(),
-    r:getValue('r').trim(),
-    otherDescription:getValue('otherDescription').trim()
-  };
-  const button=document.getElementById('saveButton');
-  button.disabled=true;
-  button.textContent='저장 중...';
-  try{
-    await api('save',{data});
-    editingId=null;
-    alert('경험이 저장되었습니다.');
-    await showDashboard();
-  }catch(err){
-    alert('저장에 실패했습니다.\\n'+(err.message||'알 수 없는 오류'));
-  }finally{
-    button.disabled=false;
-    button.textContent=editingId?'수정 내용 저장':'저장하기';
+function showPage(id) {
+  ['dashboard','formPage','detailPage'].forEach(page => $(page).classList.add('hidden'));
+  $(id).classList.remove('hidden');
+  window.scrollTo(0, 0);
+}
+async function showDashboard() {
+  showPage('dashboard');
+  try {
+    const data = await api('dashboard');
+    experiences = data.experiences || [];
+    $('total').textContent = data.total;
+    $('completed').textContent = data.completed;
+    $('incomplete').textContent = data.incomplete;
+    $('rate').textContent = data.completionRate + '%';
+    renderChart(data.categories || []);
+    renderList();
+  } catch (error) {
+    alert('경험 목록을 불러오지 못했습니다.\n' + error.message);
   }
+}
+function renderChart(categories) {
+  const max = Math.max(1, ...categories.map(x => x.count));
+  $('kindChart').innerHTML = categories.map(x =>
+    '<div class="bar-row"><div class="bar-label">' + esc(x.name) +
+    '</div><div class="bar-bg"><div class="bar" style="width:' +
+    (x.count / max * 100) + '%"></div></div><div class="bar-count">' +
+    x.count + '</div></div>').join('');
+}
+function renderList() {
+  const container = $('experienceList');
+  if (!experiences.length) {
+    container.innerHTML = '<p class="muted">아직 저장된 경험이 없습니다.</p>';
+    return;
+  }
+  container.innerHTML = experiences.map(x =>
+    '<div class="experience" data-id="' + esc(x.id) + '"><div><strong>' +
+    esc(x.name) + '</strong><span class="muted">' + esc(x.date) + ' · ' +
+    esc(x.kind) + '</span></div><div style="text-align:right"><span class="tag">' +
+    esc(x.kind) + '</span><div class="status">' + esc(x.status) +
+    '</div></div></div>').join('');
+  container.querySelectorAll('.experience').forEach(el =>
+    el.addEventListener('click', () => showDetail(el.dataset.id)));
+}
+function showDetail(id) {
+  const item = experiences.find(x => x.id === id);
+  if (!item) { alert('경험을 찾을 수 없습니다.'); return; }
+  currentId = id;
+  const fields = {
+    detailName: item.name,
+    detailMeta: item.date + ' · ' + (item.role || '역할 미입력'),
+    detailKind: item.kind,
+    detailStatus: item.status,
+    detailRole: item.role || '입력된 내용이 없습니다.',
+    detailS: item.s || '입력된 내용이 없습니다.',
+    detailT: item.t || '입력된 내용이 없습니다.',
+    detailA: item.a || '입력된 내용이 없습니다.',
+    detailR: item.r || '입력된 내용이 없습니다.',
+    detailOther: item.otherDescription || '입력된 내용이 없습니다.'
+  };
+  Object.keys(fields).forEach(id => $(id).textContent = fields[id]);
+  $('detailOtherArea').style.display = item.otherDescription ? 'block' : 'none';
+  showPage('detailPage');
+}
+function showForm() {
+  editingId = null;
+  $('experienceForm').reset();
+  $('formTitle').textContent = '새 경험 작성';
+  $('saveButton').textContent = '저장하기';
+  $('otherArea').classList.add('hidden');
+  showPage('formPage');
+}
+function editCurrent() {
+  const item = experiences.find(x => x.id === currentId);
+  if (!item) { alert('수정할 경험을 찾을 수 없습니다.'); return; }
+  editingId = item.id;
+  ['date','name','kind','role','s','t','a','r','otherDescription'].forEach(id => {
+    $(id).value = item[id] || '';
+  });
+  $('otherArea').classList.toggle('hidden', item.kind !== '기타');
+  $('formTitle').textContent = '경험 수정';
+  $('saveButton').textContent = '수정 내용 저장';
+  showPage('formPage');
+}
+async function deleteCurrent() {
+  if (!currentId || !confirm('정말 이 경험을 삭제하시겠습니까? 삭제한 내용은 복구할 수 없습니다.')) return;
+  try {
+    await api('delete', { id: currentId });
+    currentId = null;
+    alert('경험이 삭제되었습니다.');
+    await showDashboard();
+  } catch (error) {
+    alert('삭제에 실패했습니다.\n' + error.message);
+  }
+}
+function esc(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  $('kind').addEventListener('change', () =>
+    $('otherArea').classList.toggle('hidden', $('kind').value !== '기타'));
+  $('experienceForm').addEventListener('submit', async event => {
+    event.preventDefault();
+    const value = id => $(id).value;
+    const data = {
+      id: editingId,
+      date: value('date'),
+      name: value('name').trim(),
+      kind: value('kind'),
+      role: value('role').trim(),
+      s: value('s').trim(),
+      t: value('t').trim(),
+      a: value('a').trim(),
+      r: value('r').trim(),
+      otherDescription: value('otherDescription').trim()
+    };
+    const button = $('saveButton');
+    button.disabled = true;
+    button.textContent = '저장 중...';
+    try {
+      await api('save', { data });
+      editingId = null;
+      alert('경험이 저장되었습니다.');
+      await showDashboard();
+    } catch (error) {
+      alert('저장에 실패했습니다.\n' + (error.message || '알 수 없는 오류'));
+    } finally {
+      button.disabled = false;
+      button.textContent = editingId ? '수정 내용 저장' : '저장하기';
+    }
+  });
+  showDashboard();
 });
-function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-showDashboard();
 </script></body></html>
