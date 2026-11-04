@@ -5,7 +5,7 @@
 </style></head><body>
 <header><h2 onclick="showDashboard()">My Experiences</h2><nav><button class="secondary" onclick="showDashboard()">대시보드</button><button class="primary" onclick="showForm()">+ 경험 추가</button></nav></header>
 <main>
-<section id="dashboard"><h1>나의 경험 대시보드</h1><p class="muted">지금까지 쌓아온 경험을 한눈에 확인해 보세요.</p>
+<section id="dashboard"><h1>나의 경험 대시보드</h1><p class="muted">지금까지 쌓아온 경험을 한눈에 확인해 보세요. 기록은 현재 브라우저에 저장됩니다.</p>
 <div class="stats"><div class="card"><div class="muted">전체 경험</div><div class="stat-number" id="total">0</div></div><div class="card"><div class="muted">완료</div><div class="stat-number" id="completed">0</div></div><div class="card"><div class="muted">미완성</div><div class="stat-number" id="incomplete">0</div></div><div class="card"><div class="muted">완료율</div><div class="stat-number" id="rate">0%</div></div></div>
 <div class="card"><h3>종류별 경험</h3><div id="kindChart"></div></div><div class="card"><h3>내 경험 목록</h3><div id="experienceList"></div></div><button class="primary" onclick="showForm()">+ 새로운 경험 작성하기</button></section>
 <section id="formPage" class="hidden"><h1 id="formTitle">새 경험 작성</h1><p class="muted">경험에 대한 내용을 입력해 주세요.</p><div class="card"><form id="experienceForm">
@@ -19,7 +19,33 @@
 <div class="actions"><button class="primary" onclick="editCurrent()">수정하기</button><button class="danger" onclick="deleteCurrent()">삭제하기</button><button class="secondary" onclick="showDashboard()">목록으로</button></div></div></section>
 </main><script>
 let experiences=[],currentId=null,editingId=null;
-async function api(action,data={}){const r=await fetch('/api/experience',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action,...data})});const j=await r.json();if(!r.ok||!j.success)throw new Error(j.message||'요청에 실패했습니다.');return j.data;}
+const STORAGE_KEY='my-experiences-v1';
+function readExperiences(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]')}catch(e){return []}}
+function writeExperiences(items){localStorage.setItem(STORAGE_KEY,JSON.stringify(items))}
+async function api(action,data={}){
+  let items=readExperiences();
+  if(action==='dashboard'){
+    const total=items.length,completed=items.filter(x=>x.status==='완료').length;
+    return {total,completed,incomplete:total-completed,completionRate:total?Math.round(completed/total*100):0,categories:['동아리','프로젝트','대외활동','인턴','기타'].map(name=>({name,count:items.filter(x=>x.kind===name).length})),experiences:items};
+  }
+  if(action==='save'){
+    const f=data.data||{};
+    if(!f.date||!f.name||!f.kind||!f.role)throw new Error('날짜, 경험 이름, 종류, 역할을 입력해 주세요.');
+    if(f.kind==='기타'&&!f.otherDescription)throw new Error('기타 경험에 대한 설명을 입력해 주세요.');
+    const id=f.id||((crypto.randomUUID&&crypto.randomUUID())||('exp-'+Date.now()+'-'+Math.random().toString(36).slice(2)));
+    const complete=[f.s,f.t,f.a,f.r].every(v=>String(v||'').trim()!=='');
+    const item={...f,id,status:complete?'완료':'미완성',preview:f.r?f.r.substring(0,100):'결과 내용 없음'};
+    const index=items.findIndex(x=>x.id===id);
+    if(index>=0)items[index]=item;else items.unshift(item);
+    writeExperiences(items);return {id,status:item.status};
+  }
+  if(action==='delete'){
+    const next=items.filter(x=>x.id!==data.id);
+    if(next.length===items.length)throw new Error('삭제할 경험을 찾을 수 없습니다.');
+    writeExperiences(next);return {ok:true};
+  }
+  throw new Error('지원하지 않는 요청입니다.');
+}
 function showPage(id){['dashboard','formPage','detailPage'].forEach(x=>document.getElementById(x).classList.add('hidden'));document.getElementById(id).classList.remove('hidden');window.scrollTo(0,0);}
 async function showDashboard(){showPage('dashboard');try{const d=await api('dashboard');experiences=d.experiences||[];total.textContent=d.total;completed.textContent=d.completed;incomplete.textContent=d.incomplete;rate.textContent=d.completionRate+'%';renderChart(d.categories||[]);renderList();}catch(e){alert('경험 목록을 불러오지 못했습니다.\n'+e.message);}}
 function renderChart(c){const m=Math.max(1,...c.map(x=>x.count));kindChart.innerHTML=c.map(x=>'<div class="bar-row"><div class="bar-label">'+esc(x.name)+'</div><div class="bar-bg"><div class="bar" style="width:'+(x.count/m*100)+'%"></div></div><div class="bar-count">'+x.count+'</div></div>').join('');}
