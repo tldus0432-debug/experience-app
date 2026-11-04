@@ -212,7 +212,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const value = id => $(id).value;
     const data = {
       id: editingId,
-      date: value('date'),
+      startDate: value('startDate'),
+      endDate: value('endDate'),
       name: value('name').trim(),
       kind: value('kind'),
       role: value('role').trim(),
