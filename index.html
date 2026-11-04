@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ko"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>나의 경험 정리</title>
 <style>
-:root{font-family:Arial,"Noto Sans KR",sans-serif;color:#202334;background:#f6f7fb}*{box-sizing:border-box}body{margin:0}header{background:#fff;border-bottom:1px solid #e8e9ef;padding:17px max(5%,calc((100% - 1060px)/2));display:flex;justify-content:space-between;align-items:center;gap:12px}header h2{font-size:19px;margin:0;cursor:pointer}nav{display:flex;gap:8px}main{max-width:1060px;margin:34px auto;padding:0 20px}h1{font-size:27px;margin:0 0 8px}h3{margin:0 0 18px}.muted{color:#85899a;font-size:13px}button{border:0;border-radius:9px;padding:11px 15px;font-size:14px;cursor:pointer}.primary{background:#5368df;color:white}.secondary{background:#eceef5;color:#303447}.danger{background:#fff0f0;color:#c63b47}.card{background:white;border-radius:15px;padding:22px;margin:18px 0;box-shadow:0 3px 14px #20233408}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.stat-number{font-size:29px;font-weight:750;margin-top:10px}label{font-weight:650;font-size:14px}input,textarea,select{width:100%;padding:13px;border:1px solid #dfe1e9;border-radius:9px;margin:7px 0 17px;font:inherit;font-size:14px;background:white}textarea{min-height:105px;resize:vertical}.experience{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:17px 0;border-bottom:1px solid #eef0f4;cursor:pointer}.experience:last-child{border:0}.experience strong{display:block;margin-bottom:7px}.tag{display:inline-block;padding:5px 9px;background:#eef0ff;color:#5266d5;border-radius:30px;font-size:12px}.status{font-size:12px;color:#777;margin-top:6px;text-align:right}.bar-row{display:flex;align-items:center;gap:12px;margin:13px 0}.bar-label{width:85px;font-size:13px}.bar-bg{height:10px;background:#eff0f4;border-radius:20px;overflow:hidden;flex:1}.bar{height:100%;background:#7184ed}.bar-count{width:22px;text-align:right;font-size:13px}.date-range{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center}.date-range input{margin-bottom:8px}.date-separator{padding-top:14px;font-weight:700;color:#85899a}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:24px}.hidden{display:none}.detail-block{margin:22px 0}.detail-block h4{margin:0 0 7px}.detail-block p{line-height:1.75;white-space:pre-wrap;color:#555;margin:0}@media(max-width:650px){.date-range{grid-template-columns:1fr}.date-separator{display:none}.stats{grid-template-columns:repeat(2,1fr)}header{padding:15px 5%}main{margin-top:25px}.card{padding:17px}}
+:root{font-family:Arial,"Noto Sans KR",sans-serif;color:#202334;background:#f6f7fb}*{box-sizing:border-box}body{margin:0}header{background:#fff;border-bottom:1px solid #e8e9ef;padding:17px max(5%,calc((100% - 1060px)/2));display:flex;justify-content:space-between;align-items:center;gap:12px}header h2{font-size:19px;margin:0;cursor:pointer}nav{display:flex;gap:8px}main{max-width:1060px;margin:34px auto;padding:0 20px}h1{font-size:27px;margin:0 0 8px}h3{margin:0 0 18px}.muted{color:#85899a;font-size:13px}button{border:0;border-radius:9px;padding:11px 15px;font-size:14px;cursor:pointer}.primary{background:#5368df;color:white}.secondary{background:#eceef5;color:#303447}.danger{background:#fff0f0;color:#c63b47}.card{background:white;border-radius:15px;padding:22px;margin:18px 0;box-shadow:0 3px 14px #20233408}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}.stat-number{font-size:29px;font-weight:750;margin-top:10px}label{font-weight:650;font-size:14px}.star-label{display:flex;align-items:center;gap:6px}.char-count{font-weight:500;color:#85899a;font-size:13px}input,textarea,select{width:100%;padding:13px;border:1px solid #dfe1e9;border-radius:9px;margin:7px 0 17px;font:inherit;font-size:14px;background:white}textarea{min-height:105px;resize:vertical}.experience{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:17px 0;border-bottom:1px solid #eef0f4;cursor:pointer}.experience:last-child{border:0}.experience strong{display:block;margin-bottom:7px}.tag{display:inline-block;padding:5px 9px;background:#eef0ff;color:#5266d5;border-radius:30px;font-size:12px}.status{font-size:12px;color:#777;margin-top:6px;text-align:right}.bar-row{display:flex;align-items:center;gap:12px;margin:13px 0}.bar-label{width:85px;font-size:13px}.bar-bg{height:10px;background:#eff0f4;border-radius:20px;overflow:hidden;flex:1}.bar{height:100%;background:#7184ed}.bar-count{width:22px;text-align:right;font-size:13px}.date-range{display:grid;grid-template-columns:1fr auto 1fr;gap:10px;align-items:center}.date-range input{margin-bottom:8px}.date-separator{padding-top:14px;font-weight:700;color:#85899a}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:24px}.hidden{display:none}.detail-block{margin:22px 0}.detail-block h4{margin:0 0 7px}.detail-block p{line-height:1.75;white-space:pre-wrap;color:#555;margin:0}@media(max-width:650px){.date-range{grid-template-columns:1fr}.date-separator{display:none}.stats{grid-template-columns:repeat(2,1fr)}header{padding:15px 5%}main{margin-top:25px}.card{padding:17px}}
 </style></head><body>
 <header><h2 onclick="showDashboard()">My Experiences</h2><nav><button class="secondary" onclick="showDashboard()">대시보드</button><button class="primary" onclick="showForm()">+ 경험 추가</button></nav></header>
 <main>
@@ -18,7 +18,10 @@
 <p class="muted" id="periodPreview">기간을 선택하면 예: 2026-01-01~2026-03-31 (3개월) 형식으로 표시됩니다.</p><label>경험 이름 *</label><input type="text" id="name" placeholder="예: 디즈니 인턴십" required>
 <label>경험 종류 *</label><select id="kind" required><option value="">선택해 주세요</option><option>동아리</option><option>프로젝트</option><option>대외활동</option><option>인턴</option><option>기타</option></select>
 <label>역할 *</label><input type="text" id="role" placeholder="예: 팀원, 기획, 운영" required><h3>STAR 정리</h3>
-<label>Situation - 상황 (S)</label><textarea id="s" placeholder="어떤 상황이었나요?"></textarea><label>Task - 과제 (T)</label><textarea id="t" placeholder="해결해야 했던 과제는 무엇인가요?"></textarea><label>Action - 행동 (A)</label><textarea id="a" placeholder="어떤 행동을 했나요?"></textarea><label>Result - 결과 (R)</label><textarea id="r" placeholder="어떤 결과가 있었나요?"></textarea>
+<label class="star-label" for="s">Situation - 상황 (S) <span class="char-count" id="count-s">(0자)</span></label><textarea id="s" placeholder="어떤 상황이었나요?"></textarea>
+<label class="star-label" for="t">Task - 과제 (T) <span class="char-count" id="count-t">(0자)</span></label><textarea id="t" placeholder="해결해야 했던 과제는 무엇인가요?"></textarea>
+<label class="star-label" for="a">Action - 행동 (A) <span class="char-count" id="count-a">(0자)</span></label><textarea id="a" placeholder="어떤 행동을 했나요?"></textarea>
+<label class="star-label" for="r">Result - 결과 (R) <span class="char-count" id="count-r">(0자)</span></label><textarea id="r" placeholder="어떤 결과가 있었나요?"></textarea>
 <div id="otherArea" class="hidden"><label>기타 설명 *</label><textarea id="otherDescription"></textarea></div><div class="actions"><button class="primary" type="submit" id="saveButton">저장하기</button><button class="secondary" type="button" onclick="showDashboard()">취소</button></div></form></div></section>
 <section id="detailPage" class="hidden"><h1>경험 상세</h1><div class="card"><h2 id="detailName"></h2><p class="muted" id="detailMeta"></p><span class="tag" id="detailKind"></span> <span class="status" id="detailStatus"></span>
 <div class="detail-block"><h4>역할</h4><p id="detailRole"></p></div><div class="detail-block"><h4>Situation (상황)</h4><p id="detailS"></p></div><div class="detail-block"><h4>Task (과제)</h4><p id="detailT"></p></div><div class="detail-block"><h4>Action (행동)</h4><p id="detailA"></p></div><div class="detail-block"><h4>Result (결과)</h4><p id="detailR"></p></div><div class="detail-block" id="detailOtherArea"><h4>기타 설명</h4><p id="detailOther"></p></div>
@@ -102,6 +105,17 @@ function updatePeriodPreview() {
   } else {
     $('periodPreview').textContent = formatPeriod(start, end);
   }
+}
+function updateCharCount(id) {
+  const count = $('count-' + id);
+  if (!count) return;
+  count.textContent = '(' + $('' + id).value.length.toLocaleString('ko-KR') + '자)';
+}
+function initializeCharCounts() {
+  ['s','t','a','r'].forEach(id => {
+    $(id).addEventListener('input', () => updateCharCount(id));
+    updateCharCount(id);
+  });
 }
 function showPage(id) {
   ['dashboard','formPage','detailPage'].forEach(page => $(page).classList.add('hidden'));
@@ -203,6 +217,7 @@ function esc(value) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  initializeCharCounts();
   $('startDate').addEventListener('change', updatePeriodPreview);
   $('endDate').addEventListener('change', updatePeriodPreview);
   $('kind').addEventListener('change', () =>
