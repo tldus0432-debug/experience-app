@@ -61,9 +61,15 @@ async function api(action, payload = {}) {
   }
   if (action === 'save') {
     const f = payload.data || {};
-    if (!f.date || !f.name || !f.kind || !f.role) {
-      throw new Error('날짜, 경험 이름, 종류, 역할을 입력해 주세요.');
+    const startDate = String(f.startDate || '').trim();
+    const endDate = String(f.endDate || '').trim();
+    if (!startDate || !endDate || !f.name || !f.kind || !f.role) {
+      throw new Error('시작일, 종료일, 경험 이름, 종류, 역할을 입력해 주세요.');
     }
+    if (endDate < startDate) {
+      throw new Error('종료일은 시작일보다 빠를 수 없습니다.');
+    }
+    f.date = formatPeriod(startDate, endDate);
     if (f.kind === '기타' && !f.otherDescription) {
       throw new Error('기타 경험에 대한 설명을 입력해 주세요.');
     }
@@ -192,9 +198,13 @@ function editCurrent() {
   const item = experiences.find(x => x.id === currentId);
   if (!item) { alert('수정할 경험을 찾을 수 없습니다.'); return; }
   editingId = item.id;
-  ['date','name','kind','role','s','t','a','r','otherDescription'].forEach(id => {
+  $('startDate').value = item.startDate || (item.date && item.date.slice(0,10)) || '';
+  $('endDate').value = item.endDate || (item.date && item.date.slice(11,21)) || '';
+  ['name','kind','role','s','t','a','r','otherDescription'].forEach(id => {
     $(id).value = item[id] || '';
   });
+  updatePeriodPreview();
+  ['s','t','a','r'].forEach(updateCharCount);
   $('otherArea').classList.toggle('hidden', item.kind !== '기타');
   $('formTitle').textContent = '경험 수정';
   $('saveButton').textContent = '수정 내용 저장';
